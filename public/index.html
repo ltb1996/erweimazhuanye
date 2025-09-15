@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>专业推荐测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #f0f0f0;
+            margin: 20px 0;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .form-container {
+            padding: 30px;
+        }
+
+        .question {
+            display: none;
+            margin-bottom: 30px;
+        }
+
+        .question.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .question h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+            line-height: 1.4;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+
+        .option:hover {
+            background: #e3f2fd;
+            border-color: #667eea;
+        }
+
+        .option.selected {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .option input[type="radio"] {
+            margin-right: 12px;
+            width: 18px;
+            height: 18px;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #666;
+            border: 2px solid #e9ecef;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .result {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .result.active {
+            display: block;
+        }
+
+        .result h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .recommendations {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .recommendation {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>专业推荐测试</h1>
+            <p>通过10道题目，为您推荐最适合的专业方向</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+
+        <div class="form-container">
+            <form id="surveyForm">
+                <div class="question active" data-question="1">
+                    <h3>1. 您最喜欢以下哪种学习方式？</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q1" value="A">
+                            <span>通过实验和实践操作学习</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q1" value="B">
+                            <span>通过阅读和理论研究学习</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q1" value="C">
+                            <span>通过小组讨论和合作学习</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q1" value="D">
+                            <span>通过创作和设计学习</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="question" data-question="2">
+                    <h3>2. 在解决问题时，您更倾向于？</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q2" value="A">
+                            <span>用逻辑和数据分析</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q2" value="B">
+                            <span>用创意和直觉思考</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q2" value="C">
+                            <span>与他人讨论寻求建议</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q2" value="D">
+                            <span>查阅资料和案例</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="question" data-question="3">
+                    <h3>3. 您对以下哪个领域最感兴趣？</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q3" value="A">
+                            <span>科学技术和工程</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q3" value="B">
+                            <span>艺术和人文</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q3" value="C">
+                            <span>商业和管理</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q3" value="D">
+                            <span>医学和生命科学</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="question" data-question="4">
+                    <h3>4. 您更喜欢什么样的工作环境？</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q4" value="A">
+                            <span>安静的实验室或办公室</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q4" value="B">
+                            <span>开放式的创意空间</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q4" value="C">
+                            <span>团队协作的办公环境</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q4" value="D">
+                            <span>户外或现场工作</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="question" data-question="5">
+                    <h3>5. 您最擅长的能力是？</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q5" value="A">
+                            <span>数学和逻辑推理</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q5" value="B">
+                            <span>语言表达和写作</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q5" value="C">
+                            <span>人际沟通和领导</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q5" value="D">
+                            <span>动手操作和技能</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="question" data-question="6">
+                    <h3>6. 您希望未来的工作具有什么特点？</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q6" value="A">
+                            <span>稳定性和安全感</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q6" value="B">
+                            <span>挑战性和创新性</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q6" value="C">
+                            <span>高收入和社会地位</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q6" value="D">
+                            <span>社会价值和意义</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="question" data-question="7">
+                    <h3>7. 您更愿意从事哪种类型的任务？</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q7" value="A">
+                            <span>分析和研究数据</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q7" value="B">
+                            <span>设计和创作作品</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q7" value="C">
+                            <span>管理和协调团队</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q7" value="D">
+                            <span>帮助和服务他人</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="question" data-question="8">
+                    <h3>8. 您对哪种学科最有天赋？</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q8" value="A">
+                            <span>理科（数学、物理、化学）</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q8" value="B">
+                            <span>文科（语文、历史、地理）</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q8" value="C">
+                            <span>社会科学（政治、经济）</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q8" value="D">
+                            <span>艺术体育（音乐、美术、体育）</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="question" data-question="9">
+                    <h3>9. 您更关注哪个方面的社会议题？</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q9" value="A">
+                            <span>科技发展和创新</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q9" value="B">
+                            <span>文化传承和教育</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q9" value="C">
+                            <span>经济发展和就业</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q9" value="D">
+                            <span>健康医疗和环保</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="question" data-question="10">
+                    <h3>10. 您理想中的生活方式是？</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q10" value="A">
+                            <span>专注研究，追求真理</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q10" value="B">
+                            <span>自由创作，表达自我</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q10" value="C">
+                            <span>事业成功，影响他人</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q10" value="D">
+                            <span>平衡生活，服务社会</span>
+                        </label>
+                    </div>
+                </div>
+            </form>
+
+            <div class="navigation">
+                <button type="button" class="btn btn-secondary" id="prevBtn" onclick="changeQuestion(-1)" disabled>上一题</button>
+                <button type="button" class="btn btn-primary" id="nextBtn" onclick="changeQuestion(1)">下一题</button>
+                <button type="button" class="btn btn-primary" id="submitBtn" onclick="submitSurvey()" style="display: none;">查看结果</button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>正在分析您的答案...</p>
+        </div>
+
+        <div class="result" id="result">
+            <h2>您的专业推荐结果</h2>
+            <div class="recommendations" id="recommendations"></div>
+            <button type="button" class="btn btn-primary" onclick="restartSurvey()">重新测试</button>
+        </div>
+    </div>
+
+    <script>
+        let currentQuestion = 1;
+        const totalQuestions = 10;
+        const answers = {};
+
+        function updateProgress() {
+            const progress = (currentQuestion - 1) / totalQuestions * 100;
+            document.getElementById('progress').style.width = progress + '%';
+        }
+
+        function showQuestion(questionNumber) {
+            document.querySelectorAll('.question').forEach(q => q.classList.remove('active'));
+            document.querySelector(`[data-question="${questionNumber}"]`).classList.add('active');
+
+            document.getElementById('prevBtn').disabled = questionNumber === 1;
+
+            if (questionNumber === totalQuestions) {
+                document.getElementById('nextBtn').style.display = 'none';
+                document.getElementById('submitBtn').style.display = 'block';
+            } else {
+                document.getElementById('nextBtn').style.display = 'block';
+                document.getElementById('submitBtn').style.display = 'none';
+            }
+
+            updateProgress();
+        }
+
+        function changeQuestion(direction) {
+            if (direction === 1 && currentQuestion < totalQuestions) {
+                const currentAnswer = document.querySelector(`input[name="q${currentQuestion}"]:checked`);
+                if (!currentAnswer) {
+                    alert('请选择一个答案后再继续');
+                    return;
+                }
+                answers[`q${currentQuestion}`] = currentAnswer.value;
+                currentQuestion++;
+            } else if (direction === -1 && currentQuestion > 1) {
+                currentQuestion--;
+            }
+
+            showQuestion(currentQuestion);
+        }
+
+        function submitSurvey() {
+            const currentAnswer = document.querySelector(`input[name="q${currentQuestion}"]:checked`);
+            if (!currentAnswer) {
+                alert('请选择一个答案后再提交');
+                return;
+            }
+            answers[`q${currentQuestion}`] = currentAnswer.value;
+
+            document.querySelector('.form-container').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+
+            setTimeout(() => {
+                analyzeResults();
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('result').classList.add('active');
+            }, 2000);
+        }
+
+        function analyzeResults() {
+            const scores = { A: 0, B: 0, C: 0, D: 0 };
+
+            Object.values(answers).forEach(answer => {
+                scores[answer]++;
+            });
+
+            const maxScore = Math.max(...Object.values(scores));
+            const dominantType = Object.keys(scores).find(key => scores[key] === maxScore);
+
+            const recommendations = getRecommendations(dominantType, scores);
+            displayRecommendations(recommendations);
+        }
+
+        function getRecommendations(dominantType, scores) {
+            const majorCategories = {
+                A: {
+                    title: '理工科技类',
+                    majors: [
+                        { name: '计算机科学与技术', desc: '适合逻辑思维强，喜欢编程和技术创新的学生' },
+                        { name: '电子信息工程', desc: '结合理论与实践，适合对电子技术感兴趣的学生' },
+                        { name: '机械工程', desc: '适合动手能力强，喜欢设计和制造的学生' },
+                        { name: '数学与应用数学', desc: '适合逻辑思维严密，喜欢抽象思考的学生' }
+                    ]
+                },
+                B: {
+                    title: '人文艺术类',
+                    majors: [
+                        { name: '汉语言文学', desc: '适合文学功底深厚，表达能力强的学生' },
+                        { name: '历史学', desc: '适合对历史文化感兴趣，善于分析的学生' },
+                        { name: '艺术设计', desc: '适合创意思维活跃，具有艺术天赋的学生' },
+                        { name: '新闻传播学', desc: '适合表达能力强，关注社会热点的学生' }
+                    ]
+                },
+                C: {
+                    title: '经济管理类',
+                    majors: [
+                        { name: '工商管理', desc: '适合领导能力强，善于协调的学生' },
+                        { name: '经济学', desc: '适合对经济现象感兴趣，分析能力强的学生' },
+                        { name: '国际贸易', desc: '适合外语能力强，视野开阔的学生' },
+                        { name: '市场营销', desc: '适合沟通能力强，善于创新的学生' }
+                    ]
+                },
+                D: {
+                    title: '医学服务类',
+                    majors: [
+                        { name: '临床医学', desc: '适合责任心强，关爱他人的学生' },
+                        { name: '护理学', desc: '适合细心耐心，乐于助人的学生' },
+                        { name: '心理学', desc: '适合善于观察，关注人的内心世界的学生' },
+                        { name: '社会工作', desc: '适合有社会责任感，善于帮助他人的学生' }
+                    ]
+                }
+            };
+
+            const primary = majorCategories[dominantType];
+            const secondaryTypes = Object.keys(scores)
+                .filter(key => key !== dominantType)
+                .sort((a, b) => scores[b] - scores[a]);
+
+            const result = [primary];
+
+            if (secondaryTypes.length > 0 && scores[secondaryTypes[0]] >= 2) {
+                result.push(majorCategories[secondaryTypes[0]]);
+            }
+
+            return result;
+        }
+
+        function displayRecommendations(recommendations) {
+            const container = document.getElementById('recommendations');
+            container.innerHTML = '';
+
+            recommendations.forEach((category, index) => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.innerHTML = `
+                    <h3 style="color: #667eea; margin-bottom: 15px; font-size: 20px;">
+                        ${index === 0 ? '最推荐' : '次推荐'}：${category.title}
+                    </h3>
+                    ${category.majors.map(major => `
+                        <div class="recommendation">
+                            <h4 style="color: #333; margin-bottom: 8px;">${major.name}</h4>
+                            <p style="color: #666; font-size: 14px;">${major.desc}</p>
+                        </div>
+                    `).join('')}
+                `;
+                container.appendChild(categoryDiv);
+            });
+        }
+
+        function restartSurvey() {
+            currentQuestion = 1;
+            Object.keys(answers).forEach(key => delete answers[key]);
+
+            document.querySelectorAll('input[type="radio"]').forEach(input => input.checked = false);
+            document.querySelectorAll('.option').forEach(option => option.classList.remove('selected'));
+
+            document.getElementById('result').classList.remove('active');
+            document.querySelector('.form-container').style.display = 'block';
+            showQuestion(1);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('input[type="radio"]').forEach(input => {
+                input.addEventListener('change', function() {
+                    const questionDiv = this.closest('.question');
+                    questionDiv.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+                    this.closest('.option').classList.add('selected');
+                });
+            });
+
+            showQuestion(1);
+        });
+    </script>
+</body>
+</html>

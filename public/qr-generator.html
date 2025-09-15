@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR码生成器</title>
+    <script src="https://cdn.bootcdn.net/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+
+        #qrcode {
+            margin: 30px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>专业测试QR码生成器</h1>
+
+        <div class="info">
+            <p><strong>使用说明：</strong></p>
+            <p>1. 输入您的Firebase项目URL</p>
+            <p>2. 点击生成QR码</p>
+            <p>3. 保存QR码图片供学生扫描使用</p>
+        </div>
+
+        <input type="url" id="urlInput" placeholder="请输入您的网站URL (例: https://sweet-dolphin-4c5b22.netlify.app)"
+               value="https://sweet-dolphin-4c5b22.netlify.app">
+
+        <br>
+
+        <button onclick="generateQR()">生成QR码</button>
+        <button onclick="downloadQR()" id="downloadBtn" style="display: none;">下载QR码</button>
+
+        <div id="qrcode"></div>
+
+        <div class="info" id="instructions" style="display: none;">
+            <p><strong>下一步：</strong></p>
+            <p>1. 右键保存QR码图片</p>
+            <p>2. 打印或在屏幕上展示给学生</p>
+            <p>3. 学生用微信等扫码工具扫描即可开始测试</p>
+        </div>
+    </div>
+
+    <script>
+        let qrCodeDataURL = '';
+
+        function generateQR() {
+            const url = document.getElementById('urlInput').value;
+            if (!url) {
+                alert('请输入有效的URL');
+                return;
+            }
+
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+
+            const qr = new QRCode(qrContainer, {
+                text: url,
+                width: 300,
+                height: 300,
+                colorDark: '#333333',
+                colorLight: '#FFFFFF',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            setTimeout(() => {
+                const canvas = qrContainer.querySelector('canvas');
+                if (canvas) {
+                    qrCodeDataURL = canvas.toDataURL();
+                    document.getElementById('downloadBtn').style.display = 'inline-block';
+                    document.getElementById('instructions').style.display = 'block';
+                }
+            }, 100);
+        }
+
+        function downloadQR() {
+            if (!qrCodeDataURL) {
+                alert('请先生成QR码');
+                return;
+            }
+
+            const link = document.createElement('a');
+            link.download = '专业测试QR码.png';
+            link.href = qrCodeDataURL;
+            link.click();
+        }
+
+        // 页面加载时自动生成示例QR码
+        document.addEventListener('DOMContentLoaded', function() {
+            // 可以在这里设置默认URL或留空让用户输入
+        });
+    </script>
+</body>
+</html>
